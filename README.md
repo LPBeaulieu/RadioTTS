@@ -28,7 +28,7 @@ RadioTTS lets you add your commentary to your playlist directly in the file name
 
 ## ⛓️ Dependencies / Limitations <a name = "limitations"></a>
 
-The code depends on the Python Google Text-to-Speech (gTTS) and Pydub libraries to generate TTS and handle audio files respectively. The steps needed for their installation on your computer will be covered in the "Getting Started" section.
+- The code depends on the Python Google Text-to-Speech (<b>gTTS</b>) and <b>Pydub</b> libraries to generate TTS and handle audio files respectively. The steps needed for their installation on your computer will be covered in the "Getting Started" section.
 
 - You should avoid punctuation marks before or after closing language tags, as otherwise when reverting back to English you might hear "dot" instead of the inflection due to a period, as the TTS would litterally read the punctuation mark. The segments in other languages end with a closing inflection by default, so no punctuation marks are needed.
 
@@ -44,29 +44,27 @@ The code depends on the Python Google Text-to-Speech (gTTS) and Pydub libraries 
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
+The following instructions will be provided in great detail, as they are intended for a broad audience and will allow to run a copy of <b>RadioTTS</b> on a local computer.
 
+The instructions below are for Windows operating systems, but the code runs very nicely on Linux as well.
 
-<b>Step 1</b>- Go to the command line in your working folder and install the <b>Atom</b> text editor to make editing the code easier:
-```
-sudo snap install atom --classic
-```
+Start by downloading the zipped working folder, by going to the top of this github repo and clicking on the green "Code" button, and then click on the "Download Zip" option. Extract the zipped folder to your desired location. Next, hold the "Shift" key while right-clicking in your working folder, then select "Open PowerShell window here" to access the PowerShell in your working folder and enter the commands described below.
 
-<b>Step 2</b>- Create a virtual environment (called <i>env</i>) in your working folder:
+<b>Step 1</b>- Install <b>gTTS</b>, a Python module allowing for TTS (https://pypi.org/project/gTTS/) by entering the following command in the Powershell in your working folder:
 ```
-python3 -m venv env
-```
-
-<b>Step 3</b>- Activate the <i>env</i> virtual environment <b>(you will need to do this step every time you use the Python code files)</b> 
-in your working folder:
-```
-source env/bin/activate
+py -m pip install gTTS
 ```
 
-<b>Step 7</b>- Install <b>alive-Progress</b> (Python module for a progress bar displayed in command line):
+<b>Step 2</b>- Install <b>Pydub</b>, a Python module used to handle the audio files. You will first need to head over to the <b>Pydub</b> repository (https://github.com/jiaaro/pydub) and follow the instructions to install the <b>ffmpeg</b> dependency. Once that is done, enter the following in Powershell to install <b>Pydub</b>
 ```
-pip install alive-progress
+py -m pip install pydub
 ```
-<b>Step 9</b>- You're now ready to use <b>Tintype¶Text</b>! 🎉
+
+<b>Step 3</b>- Install <b>alive-Progress</b> (Python module for a progress bar displayed in command line):
+```
+py -m pip install alive-progress
+```
+<b>Step 4</b>- You're now ready to use <b>RadioTTS</b>! 🎼📻🎙
 
 ## 🎈 Usage <a name="usage"></a>
 
