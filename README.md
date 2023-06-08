@@ -67,7 +67,7 @@ Start by downloading the zipped working folder, by going to the top of this gith
 py -m pip install gTTS
 ```
 
-<b>Step 2</b>- Install <b>ffmpeg</b>, a dependency of the <b>Pydub</b> Python module used to handle the audio files. One way to do this is to copy the contents of the bin folder (from the extracted folder downloaded according to the steps 1-6 of the instructions in the following link:https://www.wikihow.com/Install-FFmpeg-on-Windows) to your working folder. The other way would be to head over to the <b>Pydub</b> repository (https://github.com/jiaaro/pydub) and follow the steps on the "Dependencies" section of the Readme page.
+<b>Step 2</b>- Install <b>ffmpeg</b>, a dependency of the <b>Pydub</b> Python module used to handle the audio files. One way to do this is to copy the contents of the bin folder (from the extracted folder downloaded according to the steps 1-6 of the instructions in the following link: https://www.wikihow.com/Install-FFmpeg-on-Windows) to your working folder. The other way would be to head over to the <b>Pydub</b> repository (https://github.com/jiaaro/pydub) and follow the steps on the "Dependencies" section of the Readme page.
 
 <b>Step 3</b>- Install <b>Pydub</b>, a Python module used to handle the audio files:
 ```
