@@ -76,7 +76,7 @@ py -m pip install alive-progress
 
 ## 🎈 Usage <a name="usage"></a>
 
-After placing the audio files you wish to add TTS introductions to in the "In" subfolder of the "Music_Files" folder, simply run <b>RadioTTS</b> by entering the following command in your working folder's Powershell:
+After placing the audio files that you wish to add TTS introductions to in the "In" subfolder of the "Music_Files" folder, simply run <b>RadioTTS</b> by entering the following command in your working folder's Powershell:
 ```
 py radio_tts.py "intro"
 ```
