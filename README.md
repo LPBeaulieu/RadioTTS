@@ -28,7 +28,7 @@ https://github.com/LPBeaulieu/RadioTTS/assets/101344807/04ca463f-aa4c-46c5-8875-
 
 ## ⛓️ Dependencies / Limitations <a name = "limitations"></a>
 
-- The code depends on the Python Google Text-to-Speech (<b>gTTS</b>) and <b>Pydub</b> libraries to generate TTS and handle audio files respectively. The steps needed for their installation on your computer will be covered in the "Getting Started" section.
+- The code depends on the Python Google Text-to-Speech (<b>gTTS</b>) and <b>Pydub</b> libraries to generate TTS and handle audio files, respectively. The steps needed for their installation on your computer will be covered in the "Getting Started" section.
 
 - You should avoid punctuation marks before or after closing language tags, as otherwise when reverting back to English you might hear "dot" instead of the inflection due to a period, as the TTS would litterally read the punctuation mark. The segments in other languages end with a closing inflection by default, so no punctuation marks are needed.
 
