@@ -247,7 +247,7 @@ elif len(csv_file_paths) == 1:
 #text in column "E" of the corresponding song's row.
 if csv_file_path == None:
     csv_file_path = os.path.join(cwd, 'Music_Files', 'In', 'songTitle_path_index_time_comment.csv')
-    with open(csv_file_path, write_vs_append) as csv_file:
+    with open(csv_file_path, write_vs_append, newline="") as csv_file:
         csv_writer = csv.writer(csv_file, delimiter='=')
         for i in range(len(song_files)):
             #The "tts_text" variable stores the string of the song name
@@ -263,7 +263,7 @@ if csv_file_path == None:
 #was one and the user wants to either shuffle the tracks,
 #and/or append new ones) is opened and the "song_list" list
 #is populated with all the rows of the CSV file.
-with open(csv_file_path) as csv_file:
+with open(csv_file_path, newline="") as csv_file:
     csv_reader = csv.reader(csv_file, delimiter='=')
     song_list = [row for row in csv_reader if row != []]
 if append == True:
@@ -284,7 +284,7 @@ if append == True:
     #it will be equal to "w" (which overwrites the file instead
     #of adding to it).
     song_list = []
-    with open(csv_file_path, write_vs_append) as csv_file:
+    with open(csv_file_path, write_vs_append, newline="") as csv_file:
         csv_writer = csv.writer(csv_file, delimiter='=')
         for i in range(len(song_files)):
             tts_text = song_files[i].split(".")[0].replace("\\", "/").split("/")[-1]
@@ -304,7 +304,7 @@ with alive_bar(len_song_list) as bar:
             sys.exit('Please include one CSV file in the "Intros_CSV" folder, '+
             'listing the introductory phrases to the music pieces, such as "The next piece is".')
         else:
-            with open(intro_csv_files[0]) as csv_file:
+            with open(intro_csv_files[0], newline="") as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter='=')
                 list_intros = [row for row in csv_reader]
 
@@ -368,7 +368,7 @@ with alive_bar(len_song_list) as bar:
     if shuffle == True:
         random.shuffle(song_list)
 
-    with open(csv_file_path, write_vs_append) as csv_file:
+    with open(csv_file_path, write_vs_append, newline="") as csv_file:
         csv_writer = csv.writer(csv_file, delimiter='=')
         #The "index_list" list will keep track of the track indices
         #("index_string"), such that merged files could have their
