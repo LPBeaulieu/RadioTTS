@@ -21,9 +21,10 @@ import sys
 #and the "intro" variable would then be set to "True".
 intro = False
 
-#Should you wish to replace the TTS-rendered file
-#name by some text of your choosing that differs from it,
-#you may pass in the argument "custom" when running the code.
+#Should you wish to build on the TTS-rendered file
+#name by adding some text of your choosing that would further
+#describe the song or the artist, you may pass in the argument
+#"custom" when running the code.
 #A CSV file with equal signs ("=") as a delimiter in-between
 #fields will be generated and the program will exit at that
 #point. You will then amend the CSV file (found within the "In"
@@ -38,16 +39,20 @@ intro = False
 custom = False
 
 #Should you want to shuffle the items of a playlist, which would
-#be useful to ensure that each successive song receives a different
-#introduction, you would then add the "shuffle" argument when running
-#the Python code.
+#be useful if you enjoy listening to mixes and want to ensure that
+#each successive song receives a different introduction, you would
+#then add the "shuffle" argument when running the Python code
 shuffle = False
 
 #Should you like to merge the audio files to generate a block of
 #music pieces, each preceded by their TTS-rendered file name, simply
 #pass in "merge:minutes" as an additional argument while running the
 #code, where you would change "minutes" for the maximal number of minutes
-#(as a whole number, without units) that the block duration will be.
+#(as a decimal number, without units) that the block duration will be.
+#For example, 'py radio_tts.py merge_length:25.5' would merge the audio
+#files until the next file would go over the maximal merged playlist
+#duration of 25 minutes and 30 seconds, before moving on to the generation
+#of the next merged playlist.
 merge_length = None
 #The counter "merged_audio_duration" will keep track of the current duration
 #(in milliseconds) of the merged audio block.
@@ -80,9 +85,13 @@ target_bit_rate = 256
 #The default language is set to English (your local variant would automatically
 #be selected), and you can modify this to any other supported language and
 #local language accent by providing these after the "language:" argument,
-#the language and its accent being separated by colons. Please consult the
-#gTTS documentation for the letter codes for the different languages and
-#accents: https://gtts.readthedocs.io/en/v2.2.1/_modules/gtts/lang.html
+#the language and its accent being separated by colons. For example, setting
+#the default language to Canadian French would require you to pass in the
+#following additional argument when running the code: "language:fr:ca",
+#with the language ("fr" for French) preceding the accent ("ca" for Canadian).
+#Note that the language and accent are separated by a colon. Please consult
+#the gTTS documentation for the letter codes for the different languages
+#and accents: https://gtts.readthedocs.io/en/v2.2.1/_modules/gtts/lang.html
 #and https://gtts.readthedocs.io/en/latest/module.html#logging.
 language = "en"
 accent = None
@@ -92,7 +101,7 @@ accent = None
 #introduction to the music piece and after the song, respectively.
 #You can modify the default duration of these silent segments
 #(half a second for the pause after the introductions and 1 second
-#for the pause after songs by passing in the number of seconds
+#for the pause after songs) by passing in the number of seconds
 #(in decimal form and without units) after the "pause_after_tts:"
 #and "pause_after_song:" arguments, respectively, when running the
 #code. For example, 'py radio_tts.py "pause_after_tts:1" "pause_after_song:1.5"'
@@ -144,9 +153,9 @@ if len(sys.argv) > 1:
                 target_bit_rate = int(sys.argv[i][9:].strip())
             elif sys.argv[i][:9].strip().lower() == "language:":
                 language_accent = sys.argv[i][9:].strip().lower().split(":")
-                language = language_accent[0]
+                language = language_accent[0].strip()
                 if len(language_accent) > 1 and language_accent[1] != "":
-                    accent = language_accent[1]
+                    accent = language_accent[1].strip()
             elif sys.argv[i][:17].strip().lower() == "pause_after_song:":
                 pause_after_song = AudioSegment.silent(duration= math.floor(float(sys.argv[i][17:].strip())*1000))
             elif sys.argv[i][:16].strip().lower() == "pause_after_tts:":
@@ -256,7 +265,7 @@ if csv_file_path == None:
 #is populated with all the rows of the CSV file.
 with open(csv_file_path) as csv_file:
     csv_reader = csv.reader(csv_file, delimiter='=')
-    song_list = [row for row in csv_reader]
+    song_list = [row for row in csv_reader if row != []]
 if append == True:
     #The "len_previous_csv" variable (initialized at 0) is
     #overwritten with the number of entries of a previous
@@ -700,7 +709,7 @@ with alive_bar(len_song_list) as bar:
                     #the silences has been assembled, it will be exported to an mp3 file
                     #if the "merge" mode hasn't been selected.
                     if merge_length == None:
-                        intro_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', file_name_for_export), format="mp3", bitrate=str(bit_rate))
+                        intro_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', file_name_for_export + ".mp3"), format="mp3", bitrate=str(bit_rate))
                     #If the "merge" mode has been selected, the audiosegments will instead
                     #be concatenated until the addition of the next audiosegment would result
                     #in a merged file with a duration exceeding the specified period, or until
@@ -743,7 +752,7 @@ with alive_bar(len_song_list) as bar:
                                 else:
                                     track_numbers = " (track number " + str(merged_tracks_indices[0]) + ")"
                                 merged_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
-                                str(playlist_number) + track_numbers), format="mp3", bitrate=str(bit_rate))
+                                str(playlist_number) + track_numbers + ".mp3"), format="mp3", bitrate=str(bit_rate))
                                 #The "playlist_number" counter is incremented.
                                 playlist_number+=1
                                 #The "merged_mp3" is reset to the song that couldn't fit into
@@ -758,7 +767,7 @@ with alive_bar(len_song_list) as bar:
                                 #be the sole track of the last playlist.
                                 if i == len_song_list-1:
                                     merged_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
-                                    str(playlist_number) + " (track number " + index_list[i] + ")"), format="mp3", bitrate=str(bit_rate))
+                                    str(playlist_number) + " (track number " + index_list[i] + ").mp3"), format="mp3", bitrate=str(bit_rate))
 
                 #If no matching language tags were found in the TTS script,
                 #A very similar approach to that of the "if" statement is
@@ -790,7 +799,7 @@ with alive_bar(len_song_list) as bar:
                     intro_mp3 += pause_after_tts + song_audiosegment + pause_after_song
                     track_duration = len(intro_mp3)
                     if merge_length == None:
-                        intro_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', file_name_for_export), format="mp3", bitrate=str(bit_rate))
+                        intro_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', file_name_for_export + ".mp3"), format="mp3", bitrate=str(bit_rate))
                     else:
                         if merged_audio_duration == 0:
                             merged_mp3 = intro_mp3
@@ -808,7 +817,7 @@ with alive_bar(len_song_list) as bar:
                                 else:
                                     track_numbers = " (track number " + str(merged_tracks_indices[0]) + ")"
                                 merged_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
-                                str(playlist_number) + track_numbers), format="mp3", bitrate=str(bit_rate))
+                                str(playlist_number) + track_numbers + ".mp3"), format="mp3", bitrate=str(bit_rate))
                                 playlist_number+=1
                                 merged_mp3 = intro_mp3
                                 merged_audio_duration = track_duration
@@ -816,7 +825,7 @@ with alive_bar(len_song_list) as bar:
                                 merged_tracks_indices.append(index_list[i])
                                 if i == len_song_list-1:
                                     merged_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
-                                    str(playlist_number) + " (track number " + index_list[i] + ")"), format="mp3", bitrate=str(bit_rate))
+                                    str(playlist_number) + " (track number " + index_list[i] + ").mp3"), format="mp3", bitrate=str(bit_rate))
 
                 #The track durations are expressed as strings with the following
                 #format: "hours:minutes:seconds.milliseconds" and stored in the
