@@ -30,13 +30,13 @@ https://github.com/LPBeaulieu/RadioTTS/assets/101344807/04ca463f-aa4c-46c5-8875-
 
 - The code depends on the Python Google Text-to-Speech (<b>gTTS</b>) and <b>Pydub</b> libraries to generate TTS and handle audio files, respectively. The steps needed for their installation on your computer will be covered in the "Getting Started" section.
 
-- You should avoid punctuation marks before or after closing language tags, as otherwise when reverting back to English you might hear "dot" instead of the inflection due to a period, as the TTS would litterally read the punctuation mark. The segments in other languages end with a closing inflection by default, so no punctuation marks are needed.
+- You should <b>avoid punctuation marks before or after closing language tags</b>, as otherwise when reverting back to English you might hear "dot" instead of the inflection due to a period, as the TTS would litterally read the punctuation mark. The segments in other languages end with a closing inflection by default, so no punctuation marks are needed.
 
-- You should routinely make a backup of your CSV files and original music tracks, to prevent data losses in the event of the program crashing. This also would facilitate your task should you wish to generate other playlists with additional content, add custom descriptions or simply shuffle your tracks.
+- <b>You should routinely make a backup of your CSV files and original music tracks</b>, to prevent data losses in the event of the program crashing. This also would facilitate your task should you wish to generate other playlists with additional content, add custom descriptions or simply shuffle your tracks.
 
 - In a lot of cases, should you encounter an error while running the code, it helps to delete the CSV file within the "In" subfolder of the "Music_Files" folder. Once again, be sure to make frequent backups of your CSV files to avoid losing information!
 
-- When opening your CSV files, make sure to only select the equal sign ("=") as a delimiter in-between cells, and to tick the "Detect special numbers in order to properly display the track times in column "D". This will allow you to do summations along the "D" column to figure out how long your playlist is. The image bellow illustrates this.
+- When opening your CSV files, make sure to <b>only select the equal sign ("=") as a delimiter in-between cells, and to tick the "Detect special numbers</b> in order to properly display the track times in column "D". This will allow you to do summations along the "D" column to figure out how long your playlist is. The image bellow illustrates this.
 <p align="center">
   <img src="https://github.com/LPBeaulieu/RadioTTS/blob/main/Detect%20special%20numbers.png" alt="Instructions on how to open the CSV file" /><hr> <b>Figure 1.</b> Make sure to only select the equal sign ("=") as a delimiter in-between cells and to tick the "Detect special numbers" option.
 </p><br>
