@@ -1,13 +1,14 @@
 # RadioTTS
 RadioTTS lets you add your commentary to your playlist directly in the file names!
 
-![Image RTF basic mode](https://github.com/LPBeaulieu/Typewriter-OCR-TintypeText/blob/main/TintypeText%20basic%20rtf%20mode%20screenshot.jpg)
+<p align="center">
+  <img src="[https://github.com/LPBeaulieu/GIF2Flipbook/blob/main/BettyBoopDemo.gif](https://github.com/LPBeaulieu/RadioTTS/blob/main/RadioTTS%20Demo.mp4)" alt="A demonstration video showcasing the TTS introduction to Beethoven's Moonlight Sonata." />
+</p>
 <h3 align="center">RadioTTS</h3>
 <div align="center">
   
-  [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPLv3.0-brightgreen.svg)](https://github.com/LPBeaulieu/TintypeText/blob/main/LICENSE)
-  
-  
+  [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPLv3.0-brightgreen.svg)](https://github.com/LPBeaulieu/RadioTTS/blob/main/LICENSE)
+  [![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg)
 </div>
 
 ---
