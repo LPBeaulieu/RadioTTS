@@ -68,10 +68,33 @@ py -m pip install alive-progress
 
 ## 🎈 Usage <a name="usage"></a>
 
+After placing the audio files you wish to add TTS introductions to in the "In" subfolder of the "Music_Files" folder, simply run <b>RadioTTS</b> by entering the following command in your working folder's Powershell:
+```
+py radio_tts.py "intro"
+```
 
-        
-  <br><b>And that's it!</b> You're now ready to convert your typewritten manuscript into digital format! You can now type away at the cottage or in the park without worrying about your laptop's battery life 
-  and still get your document polished up in digital form in the end! 🎉📖
+- There are a few arguments such as "intro" that may be added to the Python call "py radio_tts.py" when running the code, which will allow you go get specific results. The <b>"intro"</b> parameter allows you to preface each Text to speech (TTS)-rendered file name with phrases such as "The next piece is". 
+
+- Should you wish to build on the TTS-rendered file name by adding some text of your choosing that would further describe the song or the artist, you may pass in the argument <b>"custom"</b> when running the code. A CSV file with equal signs ("=") as a delimiter in-between fields will be generated and the program will exit at that point. You will then amend the CSV file (found within the "In" subfolder of the "Music_Files" folder) with your desired script at selected points in the playlist. To do this, simply paste your track description in the appropriate row of the fifth column ("E" column in LibreOffice Calc), save the file as a CSV and then run the Python code once again without the "custom" argument (which effectively bypasses audio file generation) in order to generate the music files with custom TTS-rendered introductions.
+
+- Should you want to shuffle the items of a playlist, which would be useful if you enjoy listening to mixes and want to ensure that each successive song receives a different introduction, you would then add the <b>"shuffle"</b> argument when running the Python code.
+
+- Should you like to merge the audio files to generate a block of music pieces, each preceded by their TTS-rendered file name, simply pass in <b>"merge:minutes"</b> as an additional argument while running the code, where you would change "minutes" for the maximal number of minutes (as a decimal number, without units) that the block duration will be. For example, 'py radio_tts.py merge_length:25.5' would merge the audio
+files until the next file would go over the maximal merged playlist duration of 25 minutes and 30 seconds, before moving on to the generation
+of the next merged playlist.
+
+- Should you want to add more music files to an existing CSV file, which you placed within the "In" subfolder of the "Music_Files" folder,
+simply pass in the <b>"append"</b> argument when running the code and they will be appended to the end of it.
+
+
+- The default bit rate of the exported mp3 files is set to 256 kbps. Should you want to bring it down to 128 kbps (or any other value), simply enter the number (without units) after the <b>"bit_rate:"</b> argument when running the code. The code will then select the minimum between the original track bit rate and the default or specified bit rate as the bit rate for the generated audio files, as the new files cannot have higher bit rates than the original ones.
+
+- The default TTS language is set to English (your local variant would automatically be selected), and you can modify this to any other supported language and local language accent by providing these after the <b>"language:"</b> argument, the language and its accent being separated by colons. For example, setting the default language to Canadian French would require you to pass in the following additional argument when running the code: "language:fr:ca", with the language ("fr" for French) preceding the accent ("ca" for Canadian). Note that the language and accent are separated by a colon. Please consult the gTTS documentation for the letter codes for the different languages and accents: https://gtts.readthedocs.io/en/v2.2.1/_modules/gtts/lang.html and https://gtts.readthedocs.io/en/latest/module.html#logging.
+
+- The <b>"pause_after_tts:"</b> and <b>"pause_after_song"</b> arguments define the duration of the silent segment after the TTS-rendered
+introduction to the music piece and after the song, respectively. You can modify the default duration of these silent segments (half a second for the pause after the introductions and 1 second for the pause after songs) by passing in the number of seconds (in decimal form and without units) after the <b>"pause_after_tts:"</b> and <b>"pause_after_song:"</b> arguments, respectively, when running the code. For example, 'py radio_tts.py "pause_after_tts:1" "pause_after_song:1.5"' would result in a 1 second pause after the TTS introductions and 1.5 seconds after the songs. Please note that any existing silent segments at the start and end of the songs are trimmed by the code before adding these pauses.
+
+<br><b>And there you have it!</b> You're now ready create your own customized radio show playlist with your favorite music tracks! 🎼📻🎙
   
   
 ## ✍️ Authors <a name = "author"></a>
