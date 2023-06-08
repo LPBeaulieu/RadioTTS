@@ -1,8 +1,8 @@
-# TintypeText
+# RadioTTS
 This typewriter OCR application can convert JPEG typewritten text images into RTF documents, while removing typos for you!
 
 ![Image RTF basic mode](https://github.com/LPBeaulieu/Typewriter-OCR-TintypeText/blob/main/TintypeText%20basic%20rtf%20mode%20screenshot.jpg)
-<h3 align="center">Tintype¶Text</h3>
+<h3 align="center">RadioTTS</h3>
 <div align="center">
   
   [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPLv3.0-brightgreen.svg)](https://github.com/LPBeaulieu/TintypeText/blob/main/LICENSE)
