@@ -9,6 +9,8 @@ https://github.com/LPBeaulieu/RadioTTS/assets/101344807/04ca463f-aa4c-46c5-8875-
   
   [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPLv3.0-brightgreen.svg)](https://github.com/LPBeaulieu/RadioTTS/blob/main/LICENSE)
   [![Linux](https://svgshare.com/i/Zhy.svg)](https://svgshare.com/i/Zhy.svg)
+  [![macOS](https://svgshare.com/i/ZjP.svg)](https://svgshare.com/i/ZjP.svg)
+  [![Windows](https://svgshare.com/i/ZhY.svg)](https://svgshare.com/i/ZhY.svg)
  
 </div>
 
@@ -56,7 +58,7 @@ https://github.com/LPBeaulieu/RadioTTS/assets/101344807/04ca463f-aa4c-46c5-8875-
 
 The following instructions will be provided in great detail, as they are intended for a broad audience and will allow to run a copy of <b>RadioTTS</b> on a local computer.
 
-The instructions below are for Windows operating systems, and while I'm still working on getting the code to be compatible with Windows, it runs well on Linux.
+The instructions below are for Windows operating systems, but it runs nicely on Linux as well.
 
 Start by downloading the zipped working folder, by going to the top of this github repo and clicking on the green "Code" button, and then click on the "Download Zip" option. Extract the zipped folder to your desired location. Next, hold the "Shift" key while right-clicking in your working folder, then select "Open PowerShell window here" to access the PowerShell in your working folder and enter the commands described below.
 
