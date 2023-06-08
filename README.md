@@ -2,7 +2,7 @@
 RadioTTS lets you add your commentary to your playlist directly in the file names!
 
 <p align="center">
-  <img src="[https://github.com/LPBeaulieu/GIF2Flipbook/blob/main/BettyBoopDemo.gif](https://github.com/LPBeaulieu/RadioTTS/blob/main/RadioTTS%20Demo.mp4)" alt="A demonstration video showcasing the TTS introduction to Beethoven's Moonlight Sonata." />
+  <img src="[https://github.com/LPBeaulieu/RadioTTS/blob/main/RadioTTS%20Demo.mp4]" alt="A demonstration video showcasing the TTS introduction to Beethoven's Moonlight Sonata." />
 </p>
 <h3 align="center">RadioTTS</h3>
 <div align="center">
