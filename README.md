@@ -39,10 +39,12 @@ https://github.com/LPBeaulieu/RadioTTS/assets/101344807/04ca463f-aa4c-46c5-8875-
 - When opening your CSV files, make sure to only select the equal sign ("=") as a delimiter in-between cells, and to tick the "Detect special numbers in order to properly display the track times in column "D". This will allow you to do summations along the "D" column to figure out how long your playlist is. The image bellow illustrates this.
 <p align="center">
   <img src="https://github.com/LPBeaulieu/RadioTTS/blob/main/Detect%20special%20numbers.png" alt="Instructions on how to open the CSV file" /><hr> <b>Figure 1.</b> Make sure to only select the equal sign ("=") as a delimiter in-between cells and to tick the "Detect special numbers" option.
-</p>
+</p><br>
 
 - The columns of the CSV files contain the following information: Column "A" displays the file name. Column "B" shows the complete path to the audio file. Column "C" indicates the track number. As mentioned above, column "D" shows the track duration, provided that you didn't select the "merge" option described further on in the "Usage" section. Should you want to generate further song or artist TTS descriptions, you would paste the additional TTS script in the Column "E" of the row corresponding to the music piece. This is illustrated in the screenshot below. 
-![Figure 2](https://github.com/LPBeaulieu/RadioTTS/blob/main/CSV%20file%20and%20In%20and%20Out%20folders.png)<hr> <b>Figure 2.</b> Description of the different fields of the CSV file.
+<p align="center">
+ <img src="https://github.com/LPBeaulieu/RadioTTS/blob/main/CSV%20file%20and%20In%20and%20Out%20folders.png" alt="Description of the different fields of the CSV file."/><hr><b>Figure 2.</b> Description of the different fields of the CSV file.
+</p><br>
 
 - The different song introductions (for example: "The next score is:") are contained in the "Intros_CSV.csv" file found in the "Intro_CSV" folder of your working folder. You can modify this list and add all of your favorite phrases to get personalized introductions.
 
