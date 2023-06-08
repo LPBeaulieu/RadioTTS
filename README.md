@@ -6,17 +6,15 @@ This typewriter OCR application can convert JPEG typewritten text images into RT
 <div align="center">
   
   [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPLv3.0-brightgreen.svg)](https://github.com/LPBeaulieu/TintypeText/blob/main/LICENSE)
-  [![GitHub last commit](https://img.shields.io/github/last-commit/LPBeaulieu/TintypeText)](https://github.com/LPBeaulieu/TintypeText)
-  [![GitHub issues](https://img.shields.io/github/issues/LPBeaulieu/TintypeText)](https://github.com/LPBeaulieu/TintypeText)
+  
   
 </div>
 
 ---
 
-<p align="left"> <b>Tintype¶Text</b> is a tool enabling you to convert scanned typewritten pages (in JPEG image format) into rich text format (RTF) 
-  documents, complete with formatting elements such as text alignment, paragraphs, <u>underline</u>, <i>italics</i>, <b>bold</b> and <del>strikethrough</del>. </p>
-<p align="left"> A neat functionality of <b>Tintype¶Text</b> is that the typos (wrong typewritten characters overlaid with a hashtag)
-  automatically get filtered out, and do not appear in the final RTF text. This feature, when combined with erasable typewriter ink (see https://www.reddit.com/r/typewriters/comments/ujqxrh/how_to_make_erasable_typewriter_ink/) brings the typewriter well into the 21<sup>st</sup> century as a data entry tool!
+<p align="left"> <b>RadioTTS</b> is a tool enabling you to add Text To Speech (TTS) introductions to your favorite songs using the very lifelike voices of gTTS (Google Text-to-Speech), with multilingual support! You can generate entire playlists with song introductions and also more in-depth song or artist descriptions, all of which are generated using gTTS. What you get out of this are actual mp3 files, each of which are prefixed with a track number that lets you listen to them in sequence, with the option of shuffling your tracks for you!</p>
+
+<p align="left"> A neat functionality of <b>RadioTTS</b> is that your file names are actually the script for your TTS introductions. It is also very easy to add language tags flanking phrases in other languages than your default setting. For example "(fr ca)Nocturne(fr ca) in D-flat major, opus 27 number 2, by (fr ca)Frédéric Chopin(fr ca).mp3", where (fr ca) stands for Canadian French and the passages "Nocturne" and "Frédéric Chopin" would be rendred in French, and the rest in English (or your other default language). Another interesting feature of <b>RadioTTS</b> is that you can personalize how your file names will be introduced, for example: "The next musical piece is:" followed by your file name. Simply add all of your favorite phrases to the "Intros_CSV.csv" file found in the "Intro_CSV" folder of your working folder and the code will automatically randomize the introductions, so that your announcer will be more engaging! 
   
   - You can get my <b>deep learning models</b> for both typewriters on which I developed the code on my Google Drive (<i>2021 
 Royal Epoch</i> https://drive.google.com/drive/folders/1DUKqYf7wIkRAobC8fYPjum5gFOJqJurv?usp=sharing and <i>1968 Olivetti Underwood Lettera 33</i> https://drive.google.com/drive/folders/1sykG3zUfr8RJVbk59ClnzHjO3qgkXTmF?usp=sharing), where the datasets and other useful information to build your own datasets may be found. 
