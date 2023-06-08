@@ -26,6 +26,7 @@ https://github.com/LPBeaulieu/RadioTTS/assets/101344807/04ca463f-aa4c-46c5-8875-
 - [Author](#author)
 - [Acknowledgments](#acknowledgments)
 
+
 ## ⛓️ Dependencies / Limitations <a name = "limitations"></a>
 
 - The code depends on the Python Google Text-to-Speech (<b>gTTS</b>) and <b>Pydub</b> libraries to generate TTS and handle audio files, respectively. The steps needed for their installation on your computer will be covered in the "Getting Started" section.
@@ -48,7 +49,8 @@ https://github.com/LPBeaulieu/RadioTTS/assets/101344807/04ca463f-aa4c-46c5-8875-
 
 - The different song introductions (for example: "The next score is:") are contained in the "Intros_CSV.csv" file found in the "Intro_CSV" folder of your working folder. You can modify this list and add all of your favorite phrases to get personalized introductions.
 
-- Please ensure that the working folder contains the "Music_Files" folder, along with its "In" and "Out" subfolders. You will need to place the music tracks that you wish to add introductions to in the "In" folder, and the generated tracks will be found in the "Out" folder. Your CSV playlist file will be generated in the "In" folder, so that you may easily store the CSV file along with the starting audio files in your backups.  
+- Please ensure that the working folder contains the "Music_Files" folder, along with its "In" and "Out" subfolders. You will need to place the music tracks that you wish to add introductions to in the "In" folder, and the generated tracks will be found in the "Out" folder. Your CSV playlist file will be generated in the "In" folder, so that you may easily store the CSV file along with the starting audio files in your backups.
+  
 
 ## 🏁 Getting Started <a name = "getting_started"></a>
 
@@ -63,16 +65,20 @@ Start by downloading the zipped working folder, by going to the top of this gith
 py -m pip install gTTS
 ```
 
-<b>Step 2</b>- Install <b>Pydub</b>, a Python module used to handle the audio files. You will first need to head over to the <b>Pydub</b> repository (https://github.com/jiaaro/pydub) and follow the instructions to install the <b>ffmpeg</b> dependency. Once that is done, enter the following in Powershell to install <b>Pydub</b>
+<b>Step 2</b>- Install <b>ffmpeg</b>, a dependency of the <b>Pydub</b> Python module used to handle the audio files. One way to do this is to copy the contents of the bin folder (from the extracted folder downloaded according to the steps 1- instructions in the following link:) into your working folder. The other way would be to head over to the <b>Pydub</b> repository (https://github.com/jiaaro/pydub) and follow the steps on the "Dependencies" section of the Readme page.
+
+<b>Step 3</b>- Install <b>Pydub</b>, a Python module used to handle the audio files:
 ```
 py -m pip install pydub
 ```
 
-<b>Step 3</b>- Install <b>alive-Progress</b> (Python module for a progress bar displayed in command line):
+<b>Step 4</b>- Install <b>alive-Progress</b> (Python module for a progress bar displayed in command line):
 ```
 py -m pip install alive-progress
 ```
-<b>Step 4</b>- You're now ready to use <b>RadioTTS</b>! 🎼📻🎙
+
+<b>Step 5</b>- You're now ready to use <b>RadioTTS</b>! 🎼📻🎙
+
 
 ## 🎈 Usage <a name="usage"></a>
 
