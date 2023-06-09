@@ -427,11 +427,11 @@ with alive_bar(len_song_list) as bar:
             file_extension = song_list[i][1].split(".")[-1]
             try:
                 song_audiosegment = AudioSegment.from_file(song_list[i][1], format=file_extension)
-                original_bitrate = mediainfo(song_list[i][1])['bit_rate']
-                if int(original_bitrate) < target_bit_rate:
-                    bit_rate = original_bitrate
+                original_bitrate = int(mediainfo(song_list[i][1])['bit_rate'])
+                if math.ceil(original_bitrate)/1000 < target_bit_rate:
+                    bit_rate = str(math.ceil(original_bitrate/1000)) + "k"
                 else:
-                    bit_rate = target_bit_rate
+                    bit_rate = str(target_bit_rate) + "k"
 
                 #Credit goes to MiChen00 for the solution proposed to trim the leading and trailing silences
                 #of the music pieces (https://stackoverflow.com/questions/29547218/remove-silence-at-the-
