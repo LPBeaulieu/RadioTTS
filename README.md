@@ -51,7 +51,7 @@ https://github.com/LPBeaulieu/RadioTTS/assets/101344807/04ca463f-aa4c-46c5-8875-
  <img src="https://github.com/LPBeaulieu/RadioTTS/blob/main/CSV%20file%20and%20In%20and%20Out%20folders.png" alt="Description of the different fields of the CSV file."/><hr><b>Figure 2.</b> Description of the different fields of the CSV file.
 </p><br>
 
-- The different song introductions (for example: "The next score is:") are contained in the "Intros_CSV.csv" file found in the "Intro_CSV" folder of your working folder. You can modify this list and add all of your favorite phrases to get personalized introductions.
+- The different song introductions (for example: "The next score is:") are contained in the "Intros_CSV.csv" file found in the "Intro_CSV" folder of your working folder (the working folder is the folder where the "radio_tts.py" file is located). You can modify this list and add all of your favorite phrases to get personalized introductions.
 
 - Please ensure that the working folder contains the "Music_Files" folder, along with its "In" and "Out" subfolders. You will need to place the music tracks that you wish to add introductions to in the "In" folder, and the generated tracks will be found in the "Out" folder. Your CSV playlist file will be generated in the "In" folder, so that you may easily store the CSV file along with the starting audio files in your backups.
   
