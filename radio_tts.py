@@ -1,5 +1,6 @@
 from alive_progress import alive_bar
 import csv
+from midi2audio import FluidSynth
 import glob
 from gtts import gTTS
 import math
@@ -73,7 +74,26 @@ merged_tracks_indices = []
 append = False
 write_vs_append = "w"
 
-#The default MP3 bit rate is set to 256 kbps. Should you want to bring
+#The default audio file format of the generated audio files is ".mp3" because
+#of its prevalence. However, should you like to export your files in another
+#format supported by ffmpeg, (such as ".m4a" or ".wav" files), simply enter
+#the letters and numbers comprising the extension of your chosen audio file
+#type, excluding the period, after the "file_format:" argument when running
+#the Python code. For example, py radio_tts "intro" "file_format:m4a" would
+#generate ".m4a" audio files.
+file_format = "mp3"
+output_file_extension = ".mp3"
+
+#Should you want to normalize the volume of your tracks, you could then pass
+#in the "normalization:target dBFS" option when running the code, with "target dBFS"
+#being your target decibels relative to full scale (or dBFS for short). The default
+#target dBFS is set to -20 dB and will change to any number you provide after the colon.
+#The code will then perform average amplitude normalization according to the difference
+#between the target dBFS and that of the audio track being normalized. This difference
+#will then be used to apply gain correction to the audiosegment.
+target_dBFS = None
+
+#The default bit rate is set to 256 kbps. Should you want to bring
 #it down to 128 kbps (or any other value), simply enter the number
 #(without units) after the "bit_rate:" argument when running the code.
 #The code will then select the minimum between the original track bit rate
@@ -149,6 +169,19 @@ if len(sys.argv) > 1:
             elif sys.argv[i][:6].strip().lower() == "append":
                 append = True
                 write_vs_append = "a"
+            elif sys.argv[i][:12].strip().lower() == "file_format:":
+                file_format = sys.argv[i][12:].strip().lower()
+                if file_format in ["aac", "m4a"]:
+                    file_format = "mp4"
+                    output_file_extension = ".m4a"
+                else:
+                    output_file_extension = "." + sys.argv[i][12:].strip()
+            elif sys.argv[i][:9].strip().lower() == "normalize":
+                normalize_split = [element for element in sys.argv[i].strip().split(":") if element != ""]
+                if len(normalize_split) > 1:
+                    target_dBFS = int(normalize_split[1].strip())
+                else:
+                    target_dBFS = -20
             elif sys.argv[i][:9].strip().lower() == "bit_rate:":
                 target_bit_rate = int(sys.argv[i][9:].strip())
             elif sys.argv[i][:9].strip().lower() == "language:":
@@ -178,7 +211,11 @@ if len(sys.argv) > 1:
 #files within the same folder are stored in the "csv_file_paths" list.
 cwd = os.getcwd()
 song_files = glob.glob(os.path.join(cwd, "Music_Files", "In", "*.*"))
-song_files = sorted([file for file in song_files if file.split(".")[-1].lower() != "csv"])
+song_files = [file for file in song_files if file.split(".")[-1].lower() != "csv"]
+if song_files == []:
+    sys.exit('\nPlease include at least one audio file within the "In" subfolder of your working folder.')
+else:
+    song_files.sort()
 csv_file_paths = glob.glob(os.path.join(cwd, "Music_Files", "In", "*.csv"))
 
 #Should there be exactly two CSV files within the "In" subfolder of the "Music_Files" folder,
@@ -240,7 +277,7 @@ elif len(csv_file_paths) == 1:
 #the different columns of the CSV file. The first column
 #(column "A" in LibreOffice Calc) would consist of the song
 #title, column "B" comprises the file path, column "C" contains
-#the track number and column "D" indicates the duration of the mp3
+#the track number and column "D" indicates the duration of the audio
 #files. Should you want to add more detailed TTS descriptions
 #to your musical tracks that would be included after the TTS
 #segment containing the track name, you would paste the
@@ -408,30 +445,54 @@ with alive_bar(len_song_list) as bar:
         if shuffle == True:
             song_list.sort(key=lambda x: int(x[2]))
 
-        #An "Intro" folder (with the mention in its name that it should be deleted
-        #should the program have crashed before it is automatically deleted) is
-        #created in the working folder. This folder will contain the mp3 files of
-        #the TTS generated introductions and file names, and will be deleted once
-        #the TTS files have been merged with the songs.
+
+        file_extensions = [song_list[i][1].split(".")[-1].lower() for i in range(len(song_list))]
+        if "mid" in file_extensions:
+            path_sf2 = os.path.join(cwd, "*.sf2")
+            sf2_files = glob.glob(path_sf2)
+            if sf2_files == []:
+                sys.exit('\n\nPlease include a SoundFont (".sf2") file within your working folder.')
+            elif len(sf2_files) > 1:
+                sys.exit('\n\nPlease only include one SoundFont (".sf2") file within your working folder.')
+            else:
+                fs = FluidSynth(sf2_files[0])
+
+
         for i in range(len_song_list):
+            #An "Intro" folder (with the mention in its name that it should be deleted
+            #should the program have crashed before it is automatically deleted) is
+            #created in the working folder. This folder will contain the mp3 files of
+            #the TTS generated introductions and file names, and will be deleted once
+            #the TTS files have been merged with the songs. To my knowledge, the gTTS
+            #output files must be in mp3 format.
             intro_path = os.path.join(cwd, "Intro (delete this if the program has crashed)")
             if not os.path.exists(intro_path):
                 os.makedirs(intro_path)
-
-            #The file extension is extracted from the file in order to instantiate a
-            #"Audiosegment" object from the song path in the "try" statement. The
-            #original bit rate would then be stored within the variable "original_bitrate",
+            #An "Audiosegment" object is instantiated from the song path in the "try" statement.
+            #The original bit rate would then be stored within the variable "original_bitrate",
             #and the minimum between this and the default bit rate or the one specified
-            #by the user will be selected as the bit rate for exporting the mp3 files, as
+            #by the user will be selected as the bit rate for exporting the audio files, as
             #the output bit rate cannot exceed the original bit rate.
-            file_extension = song_list[i][1].split(".")[-1]
             try:
-                song_audiosegment = AudioSegment.from_file(song_list[i][1], format=file_extension)
-                original_bitrate = int(mediainfo(song_list[i][1])['bit_rate'])
-                if math.ceil(original_bitrate)/1000 < target_bit_rate:
-                    bit_rate = str(math.ceil(original_bitrate/1000)) + "k"
-                else:
+                if file_extensions[i] == "mid":
+                    fs.midi_to_audio(song_list[i][1], os.path.join(intro_path, 'midi2wav.wav'))
+                    song_audiosegment = AudioSegment.from_wav(os.path.join(intro_path, "midi2wav.wav"))
                     bit_rate = str(target_bit_rate) + "k"
+                else:
+                    song_audiosegment = AudioSegment.from_file(song_list[i][1], format=file_extensions[i])
+                    original_bitrate = int(mediainfo(song_list[i][1])['bit_rate'])
+                    if math.ceil(original_bitrate)/1000 < target_bit_rate:
+                        bit_rate = str(math.ceil(original_bitrate/1000)) + "k"
+                    else:
+                        bit_rate = str(target_bit_rate) + "k"
+                #If the "normalization" option was selected, the code will perform
+                #average amplitude normalization according to the difference between the
+                #target decibels relative to full scale (dBFS, "target_dBFS") and
+                #the dBFS determined for the audiosegment. This difference ("delts_dBFS")
+                #is then used to apply gain correction to the audiosegment.
+                if target_dBFS:
+                    delta_dBFS = target_dBFS - song_audiosegment.dBFS
+                    song_audiosegment = song_audiosegment.apply_gain(delta_dBFS)
 
                 #Credit goes to MiChen00 for the solution proposed to trim the leading and trailing silences
                 #of the music pieces (https://stackoverflow.com/questions/29547218/remove-silence-at-the-
@@ -444,7 +505,7 @@ with alive_bar(len_song_list) as bar:
 
             #The usual "song_list" elements are comprised of four elements: the file name (index 0),
             #the complete path (index 1), the track number (index 2) and the duration of the generated
-            #mp3 file (index 3, which is only added at the very end of the code and is bypassed should
+            #audio file (index 3, which is only added at the very end of the code and is bypassed should
             #the "custom option be selected"). Should a CSV containing a more detailed TTS script in
             #the column "E" of the CSV file have been included in the "In" subfolder of the "Music_Files"
             #folder, then the resulting "song_list" derived this CSV file would have an additional
@@ -507,7 +568,7 @@ with alive_bar(len_song_list) as bar:
                     tts_text = song_list[i][0] + ". " + song_list[i][3]
 
             #The variable "file_name_for_export" stores the name of the
-            #final individual mp3 tracks that will be exported in the
+            #final individual audio tracks that will be exported in the
             #"Out" subfolder of the "Music_Files" folder. The name consists
             #of the zero-padded track number (stored in index 2 of the
             #corresponding element "i" of the list "song_list"), followed
@@ -676,7 +737,7 @@ with alive_bar(len_song_list) as bar:
                                     tts = gTTS(text_split_list[j], lang=subtext_language, tld=subtext_accent)
                                 else:
                                     tts = gTTS(text_split_list[j], lang=subtext_language)
-                                tts.save(os.path.join(intro_path, str(j) + '.mp3'))
+                                tts.save(os.path.join(intro_path, str(j) + ".mp3"))
                                 break
                             #Upon reaching the last of the language tags, if no matching
                             #text segments in "text_split_list[j]" and "matches_subtext_language[k][1]"
@@ -687,19 +748,19 @@ with alive_bar(len_song_list) as bar:
                                     tts = gTTS(text_split_list[j], lang=language, tld=accent)
                                 else:
                                     tts = gTTS(text_split_list[j], lang=language)
-                                tts.save(os.path.join(intro_path, str(j) + '.mp3'))
+                                tts.save(os.path.join(intro_path, str(j) + ".mp3"))
 
                     #The following "for" loop concatenates the TTS mp3 files generated
                     #in the above nested "for" loops.
                     for j in range(len(text_split_list)):
-                        #The concatenated Audiosegment "intro_mp3" will begin with
+                        #The concatenated Audiosegment "track_audio" will begin with
                         #the TTS-rendered introduction phrase (such as "The next song is:"),
                         #provided that "intro" option has been selected and that the file
                         #name begins with a language tag. In this case the following is True,
                         #"text_split_list[0].strip() == matches_subtext_language[0][1].strip()".
                         #The Audiosegments of the subsequent mp3 files for each element of
                         #"text_split_list" that were generated above will then be added in
-                        #sequence to "intro_mp3".
+                        #sequence to "track_audio".
                         if j == 0:
                             if intro == True and text_split_list[0].strip() == matches_subtext_language[0][1].strip():
                                 random_intro = list_intros[random_intro_indices.pop(0)][0] + " "
@@ -708,47 +769,47 @@ with alive_bar(len_song_list) as bar:
                                 else:
                                     tts = gTTS(random_intro, lang=language)
                                 tts.save(os.path.join(intro_path, 'Intro.mp3'))
-                                intro_mp3 = (AudioSegment.from_mp3(os.path.join(intro_path, 'Intro.mp3')) +
-                                AudioSegment.from_mp3(os.path.join(intro_path, str(j) + '.mp3')))
+                                track_audio = (AudioSegment.from_mp3(os.path.join(intro_path, 'Intro.mp3')) +
+                                AudioSegment.from_mp3(os.path.join(intro_path, str(j) + ".mp3")))
                             #If the "intro" option wasn't selected, or if it was selected and the file name
                             #didn't start with a language tag (see the "if intro == True and j == 0 and k == 0 and
                             #text_split_list[j].strip() != matches_subtext_language[k][1].strip():" statement above)
                             #then the concatenated audio TTS file will start at the first TTS-rendered element of
                             #"text_split_list".
                             else:
-                                intro_mp3 = AudioSegment.from_mp3(os.path.join(intro_path, str(j) + '.mp3'))
+                                track_audio = AudioSegment.from_mp3(os.path.join(intro_path, str(j) + ".mp3"))
                         #The Audiosegments of the subsequent mp3 files for each element of
                         #"text_split_list" that were generated above will then be added in
-                        #sequence to "intro_mp3".
+                        #sequence to "track_audio".
                         else:
-                            intro_mp3 += AudioSegment.from_mp3(os.path.join(intro_path, str(j) + '.mp3'))
+                            track_audio += AudioSegment.from_mp3(os.path.join(intro_path, str(j) + ".mp3"))
                     #The pauses after the TTS segment and after the song are added before and after the
                     #"song_audiosegment", respectively.
-                    intro_mp3 += pause_after_tts + song_audiosegment + pause_after_song
+                    track_audio += pause_after_tts + song_audiosegment + pause_after_song
                     #The duration of the individual track is stored
                     #in the "track_duration" variable.
-                    track_duration = len(intro_mp3)
+                    track_duration = len(track_audio)
                     #Once the final concatenated individual audiosegment comprising the
                     #introduction (if applicable), song name and song itself along with
-                    #the silences has been assembled, it will be exported to an mp3 file
+                    #the silences has been assembled, it will be exported to an audio file
                     #if the "merge" mode hasn't been selected.
                     if merge_length == None:
-                        intro_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', file_name_for_export + ".mp3"), format="mp3", bitrate=str(bit_rate))
+                        track_audio.export(os.path.join(cwd, 'Music_Files', 'Out', file_name_for_export + output_file_extension), format=file_format, bitrate=bit_rate)
                     #If the "merge" mode has been selected, the audiosegments will instead
                     #be concatenated until the addition of the next audiosegment would result
                     #in a merged file with a duration exceeding the specified period, or until
                     #the end of the song list is reached.
                     else:
-                        #The first mp3 file to be merged will go through the "if" statement below.
+                        #The first audiosegment to be merged will go through the "if" statement below.
                         #The list "merged_tracks_indices" will keep track of the track numbers that
                         #constitute a merged file. #The duration of the individual track is stored
                         #in the "track_duration" variable, while that of
                         #the merged track is stored in "merged_audio_duration".
                         if merged_audio_duration == 0:
-                            merged_mp3 = intro_mp3
+                            merged_audio = track_audio
                             merged_audio_duration = track_duration
                             merged_tracks_indices = [index_list[i]]
-                        #The subsequent mp3 files will enter this "else" statement.
+                        #The subsequent audiosegments will enter this "else" statement.
                         else:
                             #If there is still room in the merged file for another song,
                             #then it will be added at the end of the merged audiosegment.
@@ -756,11 +817,11 @@ with alive_bar(len_song_list) as bar:
                             #the added duration of the appended audiosegment.
                             #The track index is added to "merged_tracks_indices".
                             if track_duration + merged_audio_duration < merge_length:
-                                merged_mp3 += intro_mp3
+                                merged_audio += track_audio
                                 merged_audio_duration += track_duration
                                 merged_tracks_indices.append(index_list[i])
                             #If there isn't enough room for the next track in the merged audiosegment,
-                            #then it will be exported as an mp3 file, with the name "Playlist ", followed
+                            #then it will be exported as an audio file, with the name "Playlist ", followed
                             #by the "playlist_number" and the first and last track indices of the merged
                             #audiosegment. This will allow for easy reference to the CSV to find out which
                             #tracks are included in a merged playlist.
@@ -775,23 +836,23 @@ with alive_bar(len_song_list) as bar:
                                 #track number will be provided.
                                 else:
                                     track_numbers = " (track number " + str(merged_tracks_indices[0]) + ")"
-                                merged_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
-                                str(playlist_number) + track_numbers + ".mp3"), format="mp3", bitrate=str(bit_rate))
+                                merged_audio.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
+                                str(playlist_number) + track_numbers + output_file_extension), format=file_format, bitrate=bit_rate)
                                 #The "playlist_number" counter is incremented.
                                 playlist_number+=1
-                                #The "merged_mp3" is reset to the song that couldn't fit into
-                                #the playlist that was just exported as a mp3. The "merged_audio_duration"
+                                #The "merged_audio" is reset to the song that couldn't fit into
+                                #the playlist that was just exported as a audio file. The "merged_audio_duration"
                                 #and "merged_tracks_indices" are also updated to reflect the start
                                 #of a new playlist.
-                                merged_mp3 = intro_mp3
+                                merged_audio = track_audio
                                 merged_audio_duration = track_duration
                                 merged_tracks_indices = [index_list[i]]
                                 merged_tracks_indices.append(index_list[i])
                                 #If the song to be merged is the last one, it will
                                 #be the sole track of the last playlist.
                                 if i == len_song_list-1:
-                                    merged_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
-                                    str(playlist_number) + " (track number " + index_list[i] + ").mp3"), format="mp3", bitrate=str(bit_rate))
+                                    merged_audio.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
+                                    str(playlist_number) + " (track number " + index_list[i] + ")" + output_file_extension), format=file_format, bitrate=bit_rate)
 
                 #If no matching language tags were found in the TTS script,
                 #A very similar approach to that of the "if" statement is
@@ -813,19 +874,19 @@ with alive_bar(len_song_list) as bar:
                         else:
                             tts = gTTS(song_list[i][0], lang=language)
                         tts.save(os.path.join(intro_path, 'Intro.mp3'))
-                    intro_mp3 = AudioSegment.from_mp3(os.path.join(intro_path, 'Intro.mp3'))
-                    intro_mp3 += pause_after_tts + song_audiosegment + pause_after_song
-                    track_duration = len(intro_mp3)
+                    track_audio = AudioSegment.from_mp3(os.path.join(intro_path, 'Intro.mp3'))
+                    track_audio += pause_after_tts + song_audiosegment + pause_after_song
+                    track_duration = len(track_audio)
                     if merge_length == None:
-                        intro_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', file_name_for_export + ".mp3"), format="mp3", bitrate=str(bit_rate))
+                        track_audio.export(os.path.join(cwd, 'Music_Files', 'Out', file_name_for_export + output_file_extension), format=file_format, bitrate=bit_rate)
                     else:
                         if merged_audio_duration == 0:
-                            merged_mp3 = intro_mp3
+                            merged_audio = track_audio
                             merged_audio_duration = track_duration
                             merged_tracks_indices = [index_list[i]]
                         else:
                             if track_duration + merged_audio_duration < merge_length:
-                                merged_mp3 += intro_mp3
+                                merged_audio += track_audio
                                 merged_audio_duration += track_duration
                                 merged_tracks_indices.append(index_list[i])
                             else:
@@ -834,16 +895,16 @@ with alive_bar(len_song_list) as bar:
                                     "-" + str(merged_tracks_indices[-1]) + ")")
                                 else:
                                     track_numbers = " (track number " + str(merged_tracks_indices[0]) + ")"
-                                merged_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
-                                str(playlist_number) + track_numbers + ".mp3"), format="mp3", bitrate=str(bit_rate))
+                                merged_audio.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
+                                str(playlist_number) + track_numbers + output_file_extension), format=file_format, bitrate=bit_rate)
                                 playlist_number+=1
-                                merged_mp3 = intro_mp3
+                                merged_audio = track_audio
                                 merged_audio_duration = track_duration
                                 merged_tracks_indices = [index_list[i]]
                                 merged_tracks_indices.append(index_list[i])
                                 if i == len_song_list-1:
-                                    merged_mp3.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
-                                    str(playlist_number) + " (track number " + index_list[i] + ").mp3"), format="mp3", bitrate=str(bit_rate))
+                                    merged_audio.export(os.path.join(cwd, 'Music_Files', 'Out', "Playlist " +
+                                    str(playlist_number) + " (track number " + index_list[i] + ")" + output_file_extension), format=file_format, bitrate=bit_rate)
 
                 #The track durations are expressed as strings with the following
                 #format: "hours:minutes:seconds.milliseconds" and stored in the
@@ -906,7 +967,7 @@ with alive_bar(len_song_list) as bar:
                 #determined and they were stored in "song_list[i][3]".
                 #These changes can now be reflected in the updated CSV file.
                 csv_writer.writerow(song_list[i])
-                #After the mp3 have been exported, the temporary folder
+                #After the audio files have been exported, the temporary folder
                 #"Intro (delete this if the program has crashed)" and its
                 #contents can be removed
                 shutil.rmtree(intro_path)
