@@ -104,6 +104,7 @@ of the next merged playlist.
 - Should you want to add more music files to an existing CSV file, which you placed within the "In" subfolder of the "Music_Files" folder,
 simply pass in the <b>"append"</b> argument when running the code and they will be appended to the end of it.
 
+- Should you wish to normalize the volume of your tracks, you could then pass in the <b>"normalization:target dBFS"</b> argument when running the code, with "target dBFS" being your target decibels relative to full scale (or dBFS for short). The default target dBFS is set to -20 dB and will change to any number you provide after the colon. The code will then perform average amplitude normalization according to the difference between the target dBFS and that of the audio track being normalized. This difference will then be used to apply gain correction to the audiosegment.
 
 - The default bit rate of the exported mp3 files is set to 256 kbps. Should you want to bring it down to 128 kbps (or any other value), simply enter the number (without units) after the <b>"bit_rate:"</b> argument when running the code. The code will then select the minimum between the original track bit rate and the default or specified bit rate as the bit rate for the generated audio files, as the new files cannot have higher bit rates than the original ones.
 
@@ -111,6 +112,8 @@ simply pass in the <b>"append"</b> argument when running the code and they will 
 
 - The <b>"pause_after_tts:"</b> and <b>"pause_after_song"</b> arguments define the duration of the silent segment after the TTS-rendered
 introduction to the music piece and after the song, respectively. You can modify the default duration of these silent segments (half a second for the pause after the introductions and 1 second for the pause after songs) by passing in the number of seconds (in decimal form and without units) after the <b>"pause_after_tts:"</b> and <b>"pause_after_song:"</b> arguments, respectively, when running the code. For example, 'py radio_tts.py "pause_after_tts:1" "pause_after_song:1.5"' would result in a 1 second pause after the TTS introductions and 1.5 seconds after the songs. Please note that any existing silent segments at the start and end of the songs are trimmed by the code before adding these pauses.
+
+-The default audio file format of the generated audio files is ".mp3" because of its prevalence. However, should you like to export your files in another format supported by ffmpeg, (such as ".m4a" or ".wav" files), simply enter the letters and numbers comprising the extension of your chosen audio file type, excluding the period, after the <b>"file_format:"</b> argument when running the Python code. For example, py radio_tts "intro" "file_format:m4a" would generate ".m4a" audio files.
 
 <br><b>And there you have it!</b> You're now ready create your own customized radio show playlist with your favorite music tracks! 🎼📻🎙
   
