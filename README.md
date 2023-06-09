@@ -81,7 +81,16 @@ py -m pip install pydub
 py -m pip install alive-progress
 ```
 
-<b>Step 5</b>- You're now ready to use <b>RadioTTS</b>! 🎼📻🎙
+<b>Step 5</b>- Should you like to render MIDI (".mid") files as your input audio files, you would then need to install the <b>midi2audio</b> Python module (https://github.com/bzamecnik/midi2audio), and also include a SoundFont file (".sf2") in your working folder:
+```
+py -m pip install midi2audio
+```
+In addition to <b>midi2audio</b>, you would need to install one of its dependencies <b>FluidSynth</b> (https://github.com/bzamecnik/midi2audio), through the use of https://chocolatey.org/:
+```
+choco install fluidsynth
+```
+
+<b>Step 6</b>- You're now ready to use <b>RadioTTS</b>! 🎼📻🎙
 
 
 ## 🎈 Usage <a name="usage"></a>
