@@ -648,9 +648,25 @@ with alive_bar(len_song_list) as bar:
                             #it means that there is an accent in addition to a language.
                             if len(language_accent_split) > 1:
                                 subtext_accent = language_accent_split[1].strip().lower()
-                            #Recall that the first index of the elements of the list
-                            #"matches_subtext_language" contains the text flanked by
-                            #two matching language tags. If this text corresponds to
+
+                            #Recall that the index 1 of the elements of the list
+                            #"matches_subtext_language" ("matches_subtext_language[k][1]")
+                            #contains the text that is flanked by two matching language tags
+                            #in the original string with the language tags.
+                            #If "text_split_list[0].strip() != matches_subtext_language[0][1].strip()",
+                            #then it means that the file name does not begin with a language tag, and
+                            #so the introduction string (such as "The next song is") can be merged
+                            #with the first segment "text_split_list[0]", with a " " spacer.
+                            #This will ensure that there are minimal individual TTS Audiosegments to
+                            #be concatenated together, making for a smoother TTS output.
+                            if intro == True and j == 0 and k == 0 and text_split_list[j].strip() != matches_subtext_language[k][1].strip():
+                                random_intro = list_intros[random_intro_indices.pop(0)][0]
+                                text_split_list[j] = random_intro + " " + text_split_list[j].replace(" ,", ",")
+                                #Should there be on or more spaces before a comma, these will be removed.
+                                text_split_list[j] = re.sub(r'[" "]+,', r",", text_split_list[j])
+                                #If a space wasn't included after a comma, it will be introduced.
+                                text_split_list[j] = re.sub(r'(,(\S))', r", \2", text_split_list[j])
+                            #If the text flanked by two matching language tags corresponds to
                             #the current segment under investigation ("text_split_list[j]"),
                             #then the TTS file is generated with the extracted "subtext_language"
                             #and "subtext_accent" (if present). Once a match is found, the
@@ -676,13 +692,16 @@ with alive_bar(len_song_list) as bar:
                     #The following "for" loop concatenates the TTS mp3 files generated
                     #in the above nested "for" loops.
                     for j in range(len(text_split_list)):
-                        #The first segment will be treated differently if the "intro"
-                        #option has been selected. The introduction text at the random
-                        #index at index "j" of the "random_intro_indices" list will be
-                        #submitted to TTS and then the other segments of the TTS rendition
-                        #will be subsequently added in order after it.
+                        #The concatenated Audiosegment "intro_mp3" will begin with
+                        #the TTS-rendered introduction phrase (such as "The next song is:"),
+                        #provided that "intro" option has been selected and that the file
+                        #name begins with a language tag. In this case the following is True,
+                        #"text_split_list[0].strip() == matches_subtext_language[0][1].strip()".
+                        #The Audiosegments of the subsequent mp3 files for each element of
+                        #"text_split_list" that were generated above will then be added in
+                        #sequence to "intro_mp3".
                         if j == 0:
-                            if intro == True:
+                            if intro == True and text_split_list[0].strip() == matches_subtext_language[0][1].strip():
                                 random_intro = list_intros[random_intro_indices.pop(0)][0] + " "
                                 if accent:
                                     tts = gTTS(random_intro, lang=language, tld=accent)
@@ -691,11 +710,16 @@ with alive_bar(len_song_list) as bar:
                                 tts.save(os.path.join(intro_path, 'Intro.mp3'))
                                 intro_mp3 = (AudioSegment.from_mp3(os.path.join(intro_path, 'Intro.mp3')) +
                                 AudioSegment.from_mp3(os.path.join(intro_path, str(j) + '.mp3')))
-                            #If the "intro" option wasn't selected, then the concatenated audio TTS file
-                            #will start at the first TTS-rendered element of "text_split_list".
+                            #If the "intro" option wasn't selected, or if it was selected and the file name
+                            #didn't start with a language tag (see the "if intro == True and j == 0 and k == 0 and
+                            #text_split_list[j].strip() != matches_subtext_language[k][1].strip():" statement above)
+                            #then the concatenated audio TTS file will start at the first TTS-rendered element of
+                            #"text_split_list".
                             else:
                                 intro_mp3 = AudioSegment.from_mp3(os.path.join(intro_path, str(j) + '.mp3'))
-
+                        #The Audiosegments of the subsequent mp3 files for each element of
+                        #"text_split_list" that were generated above will then be added in
+                        #sequence to "intro_mp3".
                         else:
                             intro_mp3 += AudioSegment.from_mp3(os.path.join(intro_path, str(j) + '.mp3'))
                     #The pauses after the TTS segment and after the song are added before and after the
@@ -771,31 +795,25 @@ with alive_bar(len_song_list) as bar:
 
                 #If no matching language tags were found in the TTS script,
                 #A very similar approach to that of the "if" statement is
-                #taken, except that no splitting of the TTS script takes place.
-                #"tts_intro" designates the TTS of the random intro (ex: "The next
-                #song is"), while "tts" stores the TTS audio for the file name
-                #("song_list[i][0]").
+                #taken, except that as no splitting of the TTS script takes place,
+                #the "random_intro" string can be merged to the string of the
+                #file name ("song_list[i][0]"), with a spacer (" ") in-between.
                 else:
                     if intro == True:
                         random_intro = list_intros[random_intro_indices.pop(0)][0] + " "
                         if accent:
-                            tts_intro = gTTS(random_intro, lang=language, tld=accent)
-                            tts = gTTS(song_list[i][0], lang=language, tld=accent)
+                            tts = gTTS(random_intro + " " + song_list[i][0], lang=language, tld=accent)
                         else:
-                            tts_intro = gTTS(random_intro, lang=language)
-                            tts = gTTS(song_list[i][0], lang=language)
+                            tts = gTTS(random_intro + " " + song_list[i][0], lang=language)
 
-                        tts_intro.save(os.path.join(intro_path, '1-Intro.mp3'))
-                        tts.save(os.path.join(intro_path, '2-Intro.mp3'))
-                        intro_mp3 = (AudioSegment.from_mp3(os.path.join(intro_path, '1-Intro.mp3')) +
-                        AudioSegment.from_mp3(os.path.join(intro_path, '2-Intro.mp3')))
+                        tts.save(os.path.join(intro_path, 'Intro.mp3'))
                     else:
                         if accent:
                             tts = gTTS(song_list[i][0], lang=language, tld=accent)
                         else:
                             tts = gTTS(song_list[i][0], lang=language)
                         tts.save(os.path.join(intro_path, 'Intro.mp3'))
-                        intro_mp3 = AudioSegment.from_mp3(os.path.join(intro_path, 'Intro.mp3'))
+                    intro_mp3 = AudioSegment.from_mp3(os.path.join(intro_path, 'Intro.mp3'))
                     intro_mp3 += pause_after_tts + song_audiosegment + pause_after_song
                     track_duration = len(intro_mp3)
                     if merge_length == None:
