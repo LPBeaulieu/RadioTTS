@@ -35,6 +35,8 @@ https://github.com/LPBeaulieu/RadioTTS/assets/101344807/04ca463f-aa4c-46c5-8875-
 
 - You should <b>avoid punctuation marks before or after closing language tags</b>, as otherwise when reverting back to English you might hear "dot" instead of the inflection due to a period, as the TTS would litterally read the punctuation mark. The segments in other languages end with a closing inflection by default, so no punctuation marks are needed.
 
+- Make sure to <b>include commas in the file names and additional TTS scripts where you want pauses in the TTS-rendered text</b>. Should you wish for a pause in-between the song announcement (for example: "The following piece is") and the TTS-rendered file name, simply add a comma at the start of your file name (You would need to generate a new CSV should you modify the file names, as these and the file paths are stored in them). 
+
 - <b>You should routinely make a backup of your CSV files and original music tracks</b>, to prevent data losses in the event of the program crashing. This also would facilitate your task should you wish to generate other playlists with additional content, add custom descriptions or simply shuffle your tracks.
 
 - In a lot of cases, should you encounter an error while running the code, it helps to delete the CSV file within the "In" subfolder of the "Music_Files" folder. Once again, be sure to make frequent backups of your CSV files to avoid losing information!
