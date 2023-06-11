@@ -85,7 +85,7 @@ file_format = "mp3"
 output_file_extension = ".mp3"
 
 #Should you want to normalize the volume of your tracks, you could then pass
-#in the "normalization:target dBFS" option when running the code, with "target dBFS"
+#in the "normalization:target dBFS" argument when running the code, with "target dBFS"
 #being your target decibels relative to full scale (or dBFS for short). The default
 #target dBFS is set to -20 dB and will change to any number you provide after the colon.
 #The code will then perform average amplitude normalization according to the difference
@@ -291,7 +291,7 @@ if csv_file_path == None:
             #(which corresponds to its file name, after the removal of the
             #extension and the path root). The '.replace("\\", "/")' method
             #is used to ensure Windows compatibility.
-            tts_text = song_files[i].split(".")[0].replace("\\", "/").split("/")[-1]
+            tts_text = "".join(song_files[i].split(".")[:-1]).replace("\\", "/").split("/")[-1]
             csv_writer.writerow([tts_text, song_files[i]])
 
 #The CSV file (that was either just created above if
@@ -324,7 +324,7 @@ if append == True:
     with open(csv_file_path, write_vs_append, newline="") as csv_file:
         csv_writer = csv.writer(csv_file, delimiter='=')
         for i in range(len(song_files)):
-            tts_text = song_files[i].split(".")[0].replace("\\", "/").split("/")[-1]
+            tts_text = "".join(song_files[i].split(".")[:-1]).replace("\\", "/").split("/")[-1]
             song_list.append([tts_text, song_files[i]])
 
 len_song_list = len(song_list)
@@ -375,25 +375,49 @@ with alive_bar(len_song_list) as bar:
                     random_intro_indices[i] = new_random_index
 
     #Should the "append" option not be selected and the CSV file contain
-    #more rows than the number of songs in the "In" subfolder of the
-    #"Music_Files" folder, then every song path in the CSV file will
-    #be checked to see if the music file is found within the "In" folder.
-    #If one or more audio files are missing, it might either mean the you
-    #forgot to pass in the "append" argument when running the code, or
-    #that you did not place some files in the "In folder", in which case
-    #the code would let you know which are the missing files.
-    if append == False and len_song_list > len(song_files):
-        missing_files = set()
-        for i in range(len_song_list):
-            if not os.path.exists(song_list[i][1]):
-                missing_files.add(song_list[i][0] + "." + song_list[i][1].split(".")[-1])
+    #a different number of rows than the number of songs in the "In"
+    #subfolder of the "Music_Files" folder, or if there are the same number
+    #of tracks in both locations but some files were renamed ("missing_files
+    #!= set()") then a warning will be printed.
+    missing_files = set()
+    problem = False
+    for i in range(len_song_list):
+        if not os.path.exists(song_list[i][1]):
+            missing_files.add(song_list[i][0])
+
+        if problem == False:
+            if len_song_list > len(song_files) and append == False:
+                print('\n\nNote: There are more track entries in your CSV file (number of rows) ' +
+                'than the number of music pieces included in the "In" subfolder of ' +
+                'the "Music_Files" folder. If you intended to add more files to an existing ' +
+                'CSV file, you would then need to pass in the "append" argument when running the code. ' +
+                '\n\nOtherwise, the same audio tracks are present in the "In" folder and the CSV file')
+                problem = True
+            elif len_song_list == len(song_files) and missing_files != set():
+                print('\n\nWarning: The file paths in the CSV file differ from those of the music pieces included ' +
+                'in the "In" subfolder of the "Music_Files" folder. Should you have modified the audio file ' +
+                'names, you would need to either update those changes in the CSV file or delete the CSV file ' +
+                'run the code again to obtain an updated CSV file.')
+                problem = True
+            if len_song_list < len(song_files) and append == False:
+                print('\n\nNote: There are less track entries in your CSV file (number of rows) ' +
+                'than the number of music pieces included in the "In" subfolder of ' +
+                'the "Music_Files" folder.')
+                problem = True
+                if append == False:
+                    print('If you intended to add more files to an existing ' +
+                    'CSV file, you would then need to pass in the "append" argument when running the code. ' +
+                    '\n\nOtherwise, please delete the CSV file (be sure to make a backup if you added some ' +
+                    'additional TTS script in column "E") and run the code again')
+        #Should the "missing_files" set not equal an empty set, then it means
+        #that there were some files in the CSV that aren't found within the "In"
+        #folder. The code will then print those and exit if the "append" option
+        #wasn't selected. In other words, if the "append" section is selected,
+        #the "song_list" items are taken directly form the audio files found
+        #within the "In" folder and not from the previous CSV file, so no such
+        #issues would be observed.
         if missing_files != set():
-            print('\n\nThere is a different amount of track entries in your ' +
-            'CSV file (rows) than the number of music pieces included in the "In" subfolder of ' +
-            'the "Music_Files" folder. If you intended to add more files to an existing ' +
-            'CSV file, you would then need to pass in the "append" argument when running the code. ' +
-            '\n\nOtherwise, please ensure that the "In" folder contains as many songs as there are ' +
-            'rows in the CSV file. The following file names present in the CSV file are not found ' +
+            print('The following files present in the "B" column of the CSV file are not found ' +
             'within the "In" folder:')
             for missing_file in missing_files:
                 print("\n- " + missing_file)
@@ -445,20 +469,130 @@ with alive_bar(len_song_list) as bar:
         if shuffle == True:
             song_list.sort(key=lambda x: int(x[2]))
 
+        #The function "audio_parameters()" extracts the parenthesized values of the SoundFont
+        #number and "target_dBFS" from the end of the SoundFont files (".sf2") and audio files.
+        #This will allow to pair up MIDI files with their respective SoundFont files, and to
+        #override any default or user selected values of "target_dBFS" that would otherwise
+        #apply to all audio files. Any "target_dBFS" values found at the end of SoundFont files
+        #will apply to all the MIDI files of matching SoundFont number. For example, the target
+        #dBFS of -25 dB from the SountFont file named "Piano(1 -25).sf2" would apply to all of
+        #the midi files of the following format: "MIDI_file_name(1).mid". Furthermore, you can
+        #further fine-tune the normalization process by specifying a target dBFS for a given
+        #audio file, by including it within parentheses at the end of the file name. For instance,
+        #the MIDI file with the following file name "MIDI_file_name(-28 1).mid" would have a
+        #target dBFS of -28 dB, in spite of the "Piano(1 -25).sf2" file which would still apply the
+        #-25 dB target dBFS to the other MIDI files of the same SoundFont number (1). For other
+        #audio file types than midi, just add the target dBFS within parentheses at the end of
+        #the file name (ex: "mp3_file_name(-27).mp3") and the default -20 dB or any other value
+        #that you passed in with the "normalize:" argument would still apply to the other audio
+        #files that do not end with such a parenthesized expression.
+        def audio_parameters(file_name):
+            dBFStarget_soundfont_matches_split = None
+            #The r"[(](-\d+[ \d+]*|[\d+ ]*-\d+|\d+)[)]\Z" pattern will look for the presence of
+            #a parenthesized expression at the end ("\Z") of "file name" that either contains
+            #a negative integer ("-\d+") by itself or preceded or followed by a positive integer
+            #("\d+") with one space in-between the two instances. For example: the file name
+            #extracted from a MIDI file "Harpsichord Sonata in D, catalog K 141, by (it)Domenico
+            #Scarlatti(it)(-20 3)" would return "[-20, 3]", with "-20" being the new value of the
+            #target dBFS ("target_dBFS"), and "3" being the SoundFont file number included in
+            #the working folder. Another match that the "finditer" function can return is a
+            #single positive integer by itself ("\d+"), to indicate the SoundFont file number,
+            #with the "target_dBFS" being the default one or the one specified after the
+            #"normalize:" argument.
+            dBFStarget_soundfont_hits = re.finditer(r"[(](-\d+[ \d+]*|[\d+ ]*-\d+|\d+)[)]\Z", file_name)
+            #The strip() method will remove spaces after the opening parenthesis and before
+            #the closing parenthesis. For example: ( 2 -30 ) will return (2 -30)
+            #(without the parentheses). The contents of the parentheses will then be split
+            #along spaces to separate the SoundFont number from the target dBFS and then
+            #each resulting string will be converted into integers using a map() method.
+            dBFStarget_soundfont_matches =[m.group(1).strip().split(" ") for m in dBFStarget_soundfont_hits if m.group(1)]
+            dBFStarget_soundfont_matches = [list(map(int, element)) for element in dBFStarget_soundfont_matches]
+            if dBFStarget_soundfont_matches:
+                #As the "list(map())" method introduced a new layer of lists, it is
+                #now removed by indexing the first element of "dBFStarget_soundfont_matches".
+                dBFStarget_soundfont_matches = dBFStarget_soundfont_matches[0]
+            return dBFStarget_soundfont_matches
 
+        #The file extensions for all audio files in the "song_list" list are gathered in the list
+        #"file_extensions". This will allow to determine whether or not an audio file is a MIDI
+        #file, which must be rendered using a SoundFont, in an extra step when compared to other
+        #audio files.
         file_extensions = [song_list[i][1].split(".")[-1].lower() for i in range(len(song_list))]
+        #The list "list_soundfonts_dBFStarget" will contain the SoundFont number and target dBFS values
+        #extracted from the parenthesized expression at the end of the SoundFont (".sf2") file names.
+        list_soundfonts_dBFStarget = []
+        #Should there be at least one MIDI in the "In" subfolder of the "Music_Files" folder,
+        #then the code will search for SoundFont files (".sf2"), which are required to render
+        #the MIDI files. The SF2 file names will be submitted to the "audio_parameters()" function
+        #in order to extract the SoundFont number and target dBFS, if present within parentheses
+        #at the end of the file name.
         if "mid" in file_extensions:
             path_sf2 = os.path.join(cwd, "*.sf2")
             sf2_files = glob.glob(path_sf2)
             if sf2_files == []:
-                sys.exit('\n\nPlease include a SoundFont (".sf2") file within your working folder.')
-            elif len(sf2_files) > 1:
-                sys.exit('\n\nPlease only include one SoundFont (".sf2") file within your working folder.')
+                sys.exit('\n\nPlease include at least one SoundFont (".sf2") file within your working folder.')
             else:
-                fs = FluidSynth(sf2_files[0])
+                len_sf2_files = len(sf2_files)
+                for i in range(len_sf2_files):
+                    sf2_file_name = "".join(sf2_files[i].split(".")[:-1]).replace("\\", "/").split("/")[-1]
+                    dBFStarget_soundfont_file = audio_parameters(sf2_file_name)
+                    if dBFStarget_soundfont_file:
+                        #The elements of the list "dBFStarget_soundfont_file" are sorted in reverse order,
+                        #in order to have the positive SoundFont number first, followed by the negative
+                        #target dBFS.
+                        list_soundfonts_dBFStarget.append(sorted(dBFStarget_soundfont_file, reverse = True))
 
+                #If "list_soundfonts_dBFStarget = []" this means that none of the "sf2" files in the working folder
+                #have parenthesized SoundFont numbers nor target dBFS values. This is only acceptable if there is
+                #only one "sf2" file within the working folder, as all of the MIDIs could be rendered from that file.
+                #If "list_soundfonts_dBFStarget != []" and each item of the list "sf2_files" has returned a positive
+                #number corresponding to the SoundFont number (or if there was only one file in "sf2_files"), then the
+                #corresponding "sf2" file path is concatenated to each element of "list_soundfonts_dBFStarget" before
+                #sorting it along the first element, corresponding to the SountFont number if "len_sf2_files" is
+                #greater than one.
+                if list_soundfonts_dBFStarget == [] and len_sf2_files == 1:
+                    list_soundfonts_dBFStarget = [sf2_files[0]]
+                elif (list_soundfonts_dBFStarget != [] and len(list_soundfonts_dBFStarget) == len_sf2_files and
+                (len_sf2_files == 1 or (len_sf2_files > 1 and all([element[0] > 0 for element in list_soundfonts_dBFStarget])))):
+                    list_soundfonts_dBFStarget = [list_soundfonts_dBFStarget[i] + [sf2_files[i]] for i in range(len_sf2_files)]
+                    list_soundfonts_dBFStarget.sort(key = lambda x:x[0])
+                else:
+                    sys.exit('\n\nPlease add the SoundFont file number in parentheses at the end of the SoundFont file name. ' +
+                    'This will allow the code to match the SoundFont number of the MIDI files to that of the SoundFont file.' +
+                    'For example: "midi_file(1).mid" would be rendered using the SoundFont file "piano_soundfont(1).sf2".' +
+                    'Should you also want to specify a target dBFS for a given SoundFont file that will be applied to all ' +
+                    'MIDI files of the matching SoundFont number, enter the negative decibel value (without units) in the same ' +
+                    'parenthesis, separated by a space from the SoundFont number. For example: "midi_file(1).mid" would be rendered ' +
+                    'using the SoundFont file "piano_soundfont(1 -30).sf2", with a target dBFS of -30 dB. Furthermore, should you ' +
+                    'like to specify a target dBFS that would apply to a single MIDI file, simply enter it along with the SoundFont ' +
+                    'number within parentheses at the end of the MIDI file name. For instance, the target dBFS of -35 dB would be ' +
+                    'used to render the MIDI file with the following name "other_midi_file(-35 1).mid", and the -30 dB target dBSF of ' +
+                    'the "piano_soundfont(1 -30).sf2" would then only apply to "midi_file(1).mid".')
 
         for i in range(len_song_list):
+            #The variable "TTS_text_file_name", initialized to "None",
+            #for every new song in "song_list", will contain the contents
+            #of "song_list[i][0]", excluding any parenthesized expression
+            #at the end of the file name containing the "soundfont_number"
+            #and "target_dBFS".
+            TTS_text_file_name = None
+            #The variable "old_target_dBFS", initialized to "None" for
+            #every new song in "song_list", will store the initial
+            #value of "target_dBFS" before giving precedence to any
+            #values of "target_dBFS" found in the SoundFont (".sf2")
+            #or audio file names. Upon rendering the song, the value
+            #of "target_dBFS" will be reverted back to that of "old_target_dBFS",
+            #in order to preserve the general settings defined when passing
+            #in the "normalize:" argument or the default value of "target_dBFS"
+            #of -20 dB.
+            old_target_dBFS = None
+            #The variable "soundfont_number", initialized to "None" for
+            #every new song in "song_list", will contain the parenthesized
+            #sound font number found at the end of the SoundFont (".sf2") and
+            #corresponding MIDI (".mid") files. Its value will be updated to that
+            #of the SoundFont file found in the working folder, should there only
+            #be one "sf2" file in that location.
+            soundfont_number = None
             #An "Intro" folder (with the mention in its name that it should be deleted
             #should the program have crashed before it is automatically deleted) is
             #created in the working folder. This folder will contain the mp3 files of
@@ -473,11 +607,136 @@ with alive_bar(len_song_list) as bar:
             #and the minimum between this and the default bit rate or the one specified
             #by the user will be selected as the bit rate for exporting the audio files, as
             #the output bit rate cannot exceed the original bit rate.
+            #Also, should you have provided a value for "target_dBFS" and/or SoundFont number
+            #(for MIDI files specifically) for a specific song within parentheses at the end
+            #of the file name, this information would be extracted at this point, and the
+            #file name would be updated to remove such parenthesized expressions, so that
+            #they wouldn't appear in the final file names nor in the TTS-rendered text.
             try:
+                dBFStarget_soundfont = audio_parameters(song_list[i][0])
+                if dBFStarget_soundfont or len(list_soundfonts_dBFStarget) == 1:
+                    #Removing the parenthesized expressions at the end of the file names, of
+                    #which the contents were returned by the "audio_parameters()" function.
+                    TTS_text_file_name = song_list[i][0].replace("(" + " ".join(map(str, dBFStarget_soundfont)) + ")", "")
+                    #Cycling through every element of the list "dBFStarget_soundfont", returned
+                    #by the "audio_parameters()" function. If the current audio file is a MIDI
+                    #file and the value of the element is positive, it is stored in "soundfont_number",
+                    #as any other values returned by the function would be negative and correspond
+                    #to the updated value of "target_dBFS" for this audio track.
+                    for j in range(len(dBFStarget_soundfont)):
+                        if dBFStarget_soundfont[j] >= 0 and file_extensions[i] == "mid":
+                            soundfont_number = dBFStarget_soundfont[j]
+                        elif dBFStarget_soundfont[j] < 0:
+                            old_target_dBFS = target_dBFS
+                            target_dBFS = dBFStarget_soundfont[j]
+                    #Should the audio track be a MIDI file and the "soundfont_number"
+                    #not be addigned, given that the MIDI file did not end in a parenthesized
+                    #positive number (ex: "midi_file_name(-25).mid"), and since there has to
+                    #be at least one SoundFont file in the working folder a this point (because
+                    #otherwise the above code would have run ("sys.exit('\n\nPlease include at
+                    #least one SoundFont (".sf2") file within your working folder.')"), it can
+                    #be deduced that the MIDI files correspond to the first (or only) element
+                    #of list_soundfonts_dBFStarget. Should you have placed multiple SoundFont
+                    #files within the working folder containing a parenthesized positive
+                    #"soundfont_number" value at the end of their names, the code would still
+                    #select the first of these, and you would need to ensure that the proper
+                    #SoundFont was selected. Otherwise, you would need to add the SoundFont
+                    #information at the end of your MIDI file name (ex: "midi_file_name(1 -25).mid").
+                    if file_extensions[i] == "mid" and soundfont_number == None:
+                        for j in range(len(list_soundfonts_dBFStarget[0])):
+                            if isinstance(list_soundfonts_dBFStarget[0][j], int)  and  list_soundfonts_dBFStarget[0][j] >= 0:
+                                soundfont_number = list_soundfonts_dBFStarget[0][j]
+                                break
+                #The following "if" statement will extract the parenthesized "soundfont_number"
+                #and "target_dBFS" values found at the end of the SoundFont "sf2" file names that
+                #were returned by the "dBFStarget_soundfont_file = audio_parameters(sf2_file_name)"
+                #code above and then stored within the "list_soundfonts_dBFStarget" list, along
+                #with the corresponding path of the "sf2" files.
+                #A "FluidSynth" object is instantiated from the "sf2" file path at index 2 of
+                #an element of "list_soundfonts_dBFStarget" of which the "soundfont_number"
+                #matches that of the MIDI file being rendered at index "i" of the "for i in
+                #range(len_song_list)" loop. As a reminder, the individual elements of
+                #"list_soundfonts_dBFStarget" contain in sequence the "soundfont_number",
+                #"target_dBFS" and "sf2" file path for a given SoundFont, with the possibility
+                #of only containing one, or the other, or none of "soundfont_number" and "target_dBFS"
+                #(the latter case being if the "sf2" didn't contain any parenthesized information,
+                #ex: "Piano.sf2").
                 if file_extensions[i] == "mid":
+                    fs = None
+                    for j in range(len(list_soundfonts_dBFStarget)):
+                        #Should the element of "list_soundfonts_dBFStarget" under
+                        #investigation have a length of three or more, it means that
+                        #it contains in sequence values of "soundfont_number", "target_dBFS"
+                        #and the "sf2" file path for that SoundFont file. Provided that
+                        #the "sf2" "soundfont_number" matches that of the MIDI file, these
+                        #values are then stored in the corresponding variables, with
+                        #"target_dBFS" only being updated if its value is "None", meaning
+                        #that the MIDI file didn't contain a parenthesized "target_dBFS"
+                        #value that would otherwise take precedence over any "target_dBFS"
+                        #specified in the "sf2" file name.
+                        if len(list_soundfonts_dBFStarget[j]) > 2:
+                            if soundfont_number == list_soundfonts_dBFStarget[j][0]:
+                                fs = FluidSynth(list_soundfonts_dBFStarget[j][2])
+                                if old_target_dBFS == None:
+                                    old_target_dBFS = target_dBFS
+                                    target_dBFS = list_soundfonts_dBFStarget[j][1]
+                                break
+                        #Should the current element of "list_soundfonts_dBFStarget"
+                        #under investigation have a length of two, it means that it
+                        #contains either "soundfont_number" (a positive integer) or
+                        #"target_dBFS" (a negative integer), followed by the path of
+                        #the "sf2" file. The "if" and "elif" statements deal with
+                        #these possibilities, with the "soundfont_number" being checked
+                        #first in case a matching "soundfont_number" to that of the
+                        #current MIDI file can be found.
+                        elif len(list_soundfonts_dBFStarget[j]) == 2:
+                            if (list_soundfonts_dBFStarget[j][0] >= 0 and
+                            soundfont_number == list_soundfonts_dBFStarget[j][0]):
+                                fs = FluidSynth(list_soundfonts_dBFStarget[j][1])
+                                break
+                            #The "elif" statement only applies should there only be
+                            #one SoundFont file within the working folder and the
+                            #parenthesized value at the end of the "sf2" file name
+                            #is negative, meaning that it designates the value of
+                            #"target_dBFS" for that SoundFont file. Once again,
+                            #the value of "target_dBFS" is only updated if that
+                            #of "old_target_dBFS" be "None", in order to give
+                            #precedence to the "target_dBFS" found in the MIDI
+                            #file name, as mentioned above.
+                            elif (len_sf2_files == 1 and
+                            list_soundfonts_dBFStarget[j][0] < 0):
+                                 fs = FluidSynth(list_soundfonts_dBFStarget[j][1])
+                                 if old_target_dBFS == None:
+                                     old_target_dBFS = target_dBFS
+                                     target_dBFS = list_soundfonts_dBFStarget[j][0]
+                    #As there is at least one SoundFont file within the working
+                    #folder at this point in the code, should a "FluidSynth" object
+                    #not yet have been instantiated, it is instantiated now using the
+                    #first (or only) "sf2" file in the "sf2_files" list. This will
+                    #ensure that the MIDI songs are rendered and that you will be able
+                    #to check if the correct "sf2" was selected. This would give reliable
+                    #results should only one "sf2" file be in the working folder and
+                    #should all of the MIDI files require be rendered using that
+                    #SoundFont file. In this case, you wouldn't need to provide parenthesized
+                    #values of "soundfont_number" at the end of the SoundFont (".sf2") and
+                    #MIDI (".mid") file names. In all other cases, you should include this
+                    #information in the SoundFont and MIDI file names.
+                    if not fs:
+                        fs = FluidSynth(sf2_files[0])
+
+                    #The MIDI files are rendered as WAV files using the "fs" FluidSynth objects
+                    #instantiated above using the paths of the selected SoundFont file. The
+                    #WAV files are then used to instantiate an AudioSegment object for the
+                    #audio files.
                     fs.midi_to_audio(song_list[i][1], os.path.join(intro_path, 'midi2wav.wav'))
                     song_audiosegment = AudioSegment.from_wav(os.path.join(intro_path, "midi2wav.wav"))
                     bit_rate = str(target_bit_rate) + "k"
+                #If the file extension wasn't ".mid", it is used to instantiate an Audiosegment
+                #object for the audio files, using the file extension at index "i" of the
+                #"file_extensions" list. As mentioned above, the minimum between the original
+                #bitrate and that specified in the "target_bit_rate" variable is stored in the
+                #"bit_rate" variable, as the bit rate of the outputted audio track cannot exceed
+                #that of the original track.
                 else:
                     song_audiosegment = AudioSegment.from_file(song_list[i][1], format=file_extensions[i])
                     original_bitrate = int(mediainfo(song_list[i][1])['bit_rate'])
@@ -485,6 +744,7 @@ with alive_bar(len_song_list) as bar:
                         bit_rate = str(math.ceil(original_bitrate/1000)) + "k"
                     else:
                         bit_rate = str(target_bit_rate) + "k"
+
                 #If the "normalization" option was selected, the code will perform
                 #average amplitude normalization according to the difference between the
                 #target decibels relative to full scale (dBFS, "target_dBFS") and
@@ -494,6 +754,13 @@ with alive_bar(len_song_list) as bar:
                     delta_dBFS = target_dBFS - song_audiosegment.dBFS
                     song_audiosegment = song_audiosegment.apply_gain(delta_dBFS)
 
+                    print("\ni, song_list[i]: ", i, song_list[i])
+                    print("target_dBFS: ", target_dBFS)
+
+                    if old_target_dBFS and old_target_dBFS != target_dBFS:
+                        target_dBFS = old_target_dBFS
+                        print("target_dBFS: ", target_dBFS)
+
                 #Credit goes to MiChen00 for the solution proposed to trim the leading and trailing silences
                 #of the music pieces (https://stackoverflow.com/questions/29547218/remove-silence-at-the-
                 #beginning-and-at-the-end-of-wave-files-with-pydub)
@@ -502,6 +769,16 @@ with alive_bar(len_song_list) as bar:
                 strip_silence = lambda song_audiosegment: trim_trailing_silence(trim_leading_silence(song_audiosegment))
             except Exception as e:
                 sys.exit('\n\nThere was a problem when running the code: \n' + str(e))
+
+            #The variable "TTS_text_file_name", initialized to "None",
+            #for every new song in "song_list", will contain the contents
+            #of "song_list[i][0]", excluding any parenthesized expression
+            #at the end of the file name containing the "soundfont_number"
+            #and "target_dBFS". If there was no such parenthesized expression
+            #at the end of "song_list[i][0]", then the value of "TTS_text_file_name"
+            #will be set to that of the original file "song_list[i][0]".
+            if not TTS_text_file_name:
+                TTS_text_file_name = song_list[i][0]
 
             #The usual "song_list" elements are comprised of four elements: the file name (index 0),
             #the complete path (index 1), the track number (index 2) and the duration of the generated
@@ -521,10 +798,10 @@ with alive_bar(len_song_list) as bar:
             #of column "D" ("song_list[i][3]") is either an empty string or numeric once that
             #the colons and periods have been removed, it means that the user hasn't provided
             #an additional song description in either columns "D" nor "E", and so the value of
-            #"tts_text" is assigned as the file name ("song_list[i][0]").
+            #"tts_text" is assigned as the file name ("TTS_text_file_name").
             if (len(song_list[i]) > 4 and song_list[i][4] == "" and
             (song_list[i][3] == "" or (str(song_list[i][3]).replace(":", "").replace(".", "")).isnumeric())):
-                tts_text = song_list[i][0]
+                tts_text = TTS_text_file_name
 
             #Once again, the elements of "song_list" with a longer length (len(song_list[i]) > 4)
             #are analyzed before those with a shorter length, to avoid false positives.
@@ -536,19 +813,19 @@ with alive_bar(len_song_list) as bar:
                 #If the music piece ends with a closing parenthesis
                 #(likely from a closing language tag), the TTS rendition
                 #will already have a closing inflection at the end of the
-                #introduction ("song_list[i][0]"). Also, a period must not
+                #introduction ("TTS_text_file_name"). Also, a period must not
                 #be the very first character (preceded or not by spaces) in
                 #a new language TTS script, as it would be read "dot".
-                if song_list[i][0][-1] == ")":
-                    tts_text = song_list[i][0] + " " + song_list[i][4]
+                if TTS_text_file_name[-1] == ")":
+                    tts_text = TTS_text_file_name + " " + song_list[i][4]
                 else:
-                    tts_text = song_list[i][0] + ". " + song_list[i][4]
+                    tts_text = TTS_text_file_name + ". " + song_list[i][4]
 
             #The two following "elif" statements are similar to the "if" and "elif"
             #statements above.
             elif (len(song_list[i]) < 4 or len(song_list[i]) > 3 and
             (song_list[i][3] == "" or (str(song_list[i][3]).replace(":", "").replace(".", "")).isnumeric())):
-                tts_text = song_list[i][0]
+                tts_text = TTS_text_file_name
 
             #The difference between this "elif" statement and the first "elif" statement
             #('elif len(song_list[i]) > 4 and song_list[i][4] != "":') is that it deals
@@ -562,20 +839,20 @@ with alive_bar(len_song_list) as bar:
             #periods have been removed.
             elif (len(song_list[i]) > 3 and song_list[i][3] != "" and
             not (str(song_list[i][3]).replace(":", "").replace(".", "")).isnumeric()):
-                if song_list[i][0][-1] == ")":
-                    tts_text = song_list[i][0] + " " + song_list[i][3]
+                if TTS_text_file_name[-1] == ")":
+                    tts_text = TTS_text_file_name + " " + song_list[i][3]
                 else:
-                    tts_text = song_list[i][0] + ". " + song_list[i][3]
+                    tts_text = TTS_text_file_name + ". " + song_list[i][3]
 
             #The variable "file_name_for_export" stores the name of the
             #final individual audio tracks that will be exported in the
             #"Out" subfolder of the "Music_Files" folder. The name consists
             #of the zero-padded track number (stored in index 2 of the
             #corresponding element "i" of the list "song_list"), followed
-            #by a hyphen and the name of the file song_list[i][0]. Should
+            #by a hyphen and the name of the file TTS_text_file_name. Should
             #the resulting name exceed 250 characters, it is truncated to
             #250 chars.
-            file_name_for_export = song_list[i][2] + "-" + song_list[i][0]
+            file_name_for_export = song_list[i][2] + "-" + TTS_text_file_name
             if len(file_name_for_export) > 250:
                 file_name_for_export = file_name_for_export[:251]
 
@@ -661,7 +938,7 @@ with alive_bar(len_song_list) as bar:
                 #split along these into individual strings to remove the tags, leaving behind the text
                 #that will be found in the "file_name_for_export". Each segment will be stored within
                 #the "text_split_list" list. The "start_index" will walk along the file name string
-                #("song_list[i][0]"). The remainder of the string after the last closing language tag is
+                #("TTS_text_file_name"). The remainder of the string after the last closing language tag is
                 #added to the end of "text_split_list" after the "for" loop is done by slicing "tts_text"
                 #starting from the index after the last closing parenthesis of the last closing language tag,
                 #up to the end of "tts_text" ("tts_text[matches_subtext_language[-1][2]:]").
@@ -858,21 +1135,21 @@ with alive_bar(len_song_list) as bar:
                 #A very similar approach to that of the "if" statement is
                 #taken, except that as no splitting of the TTS script takes place,
                 #the "random_intro" string can be merged to the string of the
-                #file name ("song_list[i][0]"), with a spacer (" ") in-between.
+                #file name ("TTS_text_file_name"), with a spacer (" ") in-between.
                 else:
                     if intro == True:
                         random_intro = list_intros[random_intro_indices.pop(0)][0] + " "
                         if accent:
-                            tts = gTTS(random_intro + " " + song_list[i][0], lang=language, tld=accent)
+                            tts = gTTS(random_intro + " " + TTS_text_file_name, lang=language, tld=accent)
                         else:
-                            tts = gTTS(random_intro + " " + song_list[i][0], lang=language)
+                            tts = gTTS(random_intro + " " + TTS_text_file_name, lang=language)
 
                         tts.save(os.path.join(intro_path, 'Intro.mp3'))
                     else:
                         if accent:
-                            tts = gTTS(song_list[i][0], lang=language, tld=accent)
+                            tts = gTTS(TTS_text_file_name, lang=language, tld=accent)
                         else:
-                            tts = gTTS(song_list[i][0], lang=language)
+                            tts = gTTS(TTS_text_file_name, lang=language)
                         tts.save(os.path.join(intro_path, 'Intro.mp3'))
                     track_audio = AudioSegment.from_mp3(os.path.join(intro_path, 'Intro.mp3'))
                     track_audio += pause_after_tts + song_audiosegment + pause_after_song
