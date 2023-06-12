@@ -753,13 +753,8 @@ with alive_bar(len_song_list) as bar:
                 if target_dBFS:
                     delta_dBFS = target_dBFS - song_audiosegment.dBFS
                     song_audiosegment = song_audiosegment.apply_gain(delta_dBFS)
-
-                    print("\ni, song_list[i]: ", i, song_list[i])
-                    print("target_dBFS: ", target_dBFS)
-
                     if old_target_dBFS and old_target_dBFS != target_dBFS:
                         target_dBFS = old_target_dBFS
-                        print("target_dBFS: ", target_dBFS)
 
                 #Credit goes to MiChen00 for the solution proposed to trim the leading and trailing silences
                 #of the music pieces (https://stackoverflow.com/questions/29547218/remove-silence-at-the-
